@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    /* جعل الاتجاه من اليمين لليسار بشكل افتراضي */
+    direction: rtl;
+    @apply bg-warm-creamDark text-warm-text antialiased;
+  }
+}
+
+@layer components {
+  /* تحسين شكل منطقة الرسائل لتكون مرنة في الجوال */
+  .chat-container {
+    @apply flex flex-col h-screen max-w-4xl mx-auto p-4;
+  }
+
+  /* فقاعة الرسالة مع تأثيرات ظل خفيفة */
+  .message-bubble {
+    @apply max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-sm transition-all duration-200;
+  }
+
+  /* تمييز رسالة المستخدم عن المستشار */
+  .user-bubble {
+    @apply self-start bg-blue-600 text-white rounded-br-none;
+  }
+
+  .bot-bubble {
+    @apply self-end bg-white border border-gray-100 text-gray-800 rounded-bl-none shadow-sm;
+  }
+}
+
+/* تخصيصات إضافية للجوال (Responsive) */
+@layer utilities {
+  /* لمنع الآيفون من عمل زووم تلقائي عند الكتابة */
+  .input-fix {
+    font-size: 16px !important;
+  }
+
+  /* شريط التمرير (Scrollbar) بشكل أنيق */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+}
+
+:root {
+  --border: 200 20% 90%;
+}
+
+/* تجاوز خطأ الحدود بلون ناعم يتناسب مع الثيم الدافئ */
+.border-border {
+  border-color: rgba(0, 0, 0, 0.05);
+}
