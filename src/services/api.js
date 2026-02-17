@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://127.0.0.1:8000';
+// ✅ نسخة نهائية تدعم الجوال والحاسوب عبر HTTPS
+const API_BASE_URL = '/api'; 
 const API_TIMEOUT = 300000; 
 
 const EMERGENCY_KEYWORDS = {
@@ -6,7 +7,6 @@ const EMERGENCY_KEYWORDS = {
   en: ['suicide', 'kill myself', 'end my life', 'self-harm', 'want to die']
 };
 
-// تم تحديث الرقم إلى 911 كما طلبتِ
 const EMERGENCY_MESSAGE = `تحذير: يبدو أنك تمر بأزمة نفسية حادة. يرجى الاتصال بـ 911 فوراً لتقديم المساعدة لك. نحن نهتم لأمرك.`;
 
 function detectEmergency(message) {
@@ -17,31 +17,32 @@ function detectEmergency(message) {
 }
 
 export async function sendMessage(message, history = [], userData = null) {
-  console.log("🚀 بدأت دالة sendMessage بالعمل...");
-  
   let timeoutId;
   try {
     if (detectEmergency(message)) {
-      console.log("🚨 تم رصد حالة طارئة محلياً!");
       return { 
-        text: 'تم رصد حالة طارئة.', 
+        text: EMERGENCY_MESSAGE, 
         isEmergency: true, 
         emergencyMessage: EMERGENCY_MESSAGE 
       };
     }
 
     const controller = new AbortController();
-    timeoutId = setTimeout(() => {
-        console.warn("⚠️ تنبيه: انتهاء المهلة.");
-        controller.abort();
-    }, API_TIMEOUT);
+    timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify({
         message: message,
-        history: history.map(msg => ({ role: msg.isUser ? 'user' : 'assistant', content: msg.text })),
+        history: history.map(msg => ({ 
+          role: msg.isUser ? 'user' : 'assistant', 
+          content: msg.text 
+        })),
+        user_id: userData?.id || "guest_user",
         user_profile: userData
       }),
       signal: controller.signal
@@ -49,13 +50,9 @@ export async function sendMessage(message, history = [], userData = null) {
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-        throw new Error(`خطأ من السيرفر: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
     const data = await response.json();
-    console.log("✅ تم استلام الرد بنجاح!");
-    
     return {
       text: data.response || 'عذراً، لم أستطع صياغة رد مناسب.',
       source: data.source || 'ذكاء اصطناعي',
@@ -65,9 +62,8 @@ export async function sendMessage(message, history = [], userData = null) {
 
   } catch (error) {
     if (timeoutId) clearTimeout(timeoutId);
-    console.error("🔥 خطأ:", error);
     return { 
-        text: error.name === 'AbortError' ? 'السيرفر استغرق وقتاً طويلاً.' : 'فشل الاتصال بالخادم.', 
+        text: error.name === 'AbortError' ? 'السيرفر استغرق وقتاً طويلاً.' : 'فشل الاتصال بالخادم. يرجى التأكد من الإنترنت.', 
         error: true 
     };
   }
